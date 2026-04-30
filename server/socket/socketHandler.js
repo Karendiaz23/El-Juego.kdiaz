@@ -8,22 +8,25 @@ function updatePlayer(id, input) {
   const player = players[id];
   if (!player) return;
 
-  // 🔥 ESTA ES LA LÍNEA MÁS IMPORTANTE
   player.x += input.x;
   player.y += input.y;
 }
 
-function removePlayer(id) {
-  delete players[id];
+function setupSocket(io, gameState) {
+  io.on("connection", (socket) => {
+    console.log("Jugador conectado:", socket.id);
+
+    addPlayer(socket.id);
+
+    socket.on("move", (input) => {
+      updatePlayer(socket.id, input);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Jugador desconectado:", socket.id);
+      delete players[socket.id];
+    });
+  });
 }
 
-function getState() {
-  return players;
-}
-
-module.exports = {
-  addPlayer,
-  updatePlayer,
-  removePlayer,
-  getState,
-};
+module.exports = setupSocket;

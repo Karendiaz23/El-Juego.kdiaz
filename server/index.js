@@ -1,38 +1,33 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-
-const setupSocket = require("./socket/socketHandler");
-const GameState = require("./game/gameState");
+import express from 'express';
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 
 const app = express();
-
 const server = http.createServer(app);
+const io = new SocketIOServer(server, { cors: { origin: '*' } }); // cors solo para test en el ejemplo!
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
+// Servir archivos estáticos desde la carpeta 'public'
+app.use(express.static('public'));
+
+// Manejar conexiones de clientes
+io.on('connection', (socket) => {
+  console.log('Cliente conectado');
+
+  // Manejar mensajes del cliente
+  socket.on('message', (message) => {
+    console.log('Mensaje recibido:', message);
+    
+    // Enviar mensaje a todos los clientes, incluido el que envió el mensaje
+    io.emit('message', message);
+  });
+
+  // Manejar desconexiones
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado');
+  });
 });
 
-const gameState = new GameState();
-
-setupSocket(io, gameState);
-
-setInterval(() => {
-  gameState.update();
-
-  io.emit("gameState", {
-    level: gameState.level,
-    players: gameState.players,
-    key: gameState.key,
-    door: gameState.door,
-    hasKey: gameState.hasKey,
-    win: gameState.win,
-    platforms: gameState.platforms,
-  });
-}, 1000 / 30);
-
-server.listen(3000, () => {
-  console.log("SERVIDOR EN PUERTO 3000");
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Servidor Socket.IO iniciado en http://localhost:${PORT}`);
 });

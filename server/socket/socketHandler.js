@@ -1,32 +1,35 @@
-const players = {};
-
-function addPlayer(id) {
-  players[id] = { x: 100, y: 100 };
-}
-
-function updatePlayer(id, input) {
-  const player = players[id];
-  if (!player) return;
-
-  player.x += input.x;
-  player.y += input.y;
-}
-
-function setupSocket(io, gameState) {
+module.exports = function setupSocket(io, gameState) {
   io.on("connection", (socket) => {
-    console.log("Jugador conectado:", socket.id);
+    const isHost = socket.handshake.query.host === "true";
 
-    addPlayer(socket.id);
+    if (!isHost) {
+      console.log("Jugador conectado:", socket.id);
 
-    socket.on("move", (input) => {
-      updatePlayer(socket.id, input);
+      gameState.addPlayer(socket.id);
+    }
+
+    socket.on("move", (movement) => {
+      if (!isHost) {
+        gameState.movePlayer(socket.id, movement);
+      }
+    });
+
+    socket.on("stop", () => {
+      if (!isHost) {
+        gameState.stopPlayer(socket.id);
+      }
+    });
+
+    socket.on("nextLevel", () => {
+      gameState.nextLevel();
     });
 
     socket.on("disconnect", () => {
-      console.log("Jugador desconectado:", socket.id);
-      delete players[socket.id];
+      if (!isHost) {
+        console.log("Jugador desconectado:", socket.id);
+
+        gameState.removePlayer(socket.id);
+      }
     });
   });
-}
-
-module.exports = setupSocket;
+};

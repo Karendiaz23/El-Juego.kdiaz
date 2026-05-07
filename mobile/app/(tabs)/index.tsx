@@ -1,41 +1,60 @@
 import { Text, View, Pressable, StyleSheet } from "react-native";
+
 import { io } from "socket.io-client";
 
-// ✅ IMPORTANTE: URL bien escrita
-const socket = io("http://192.168.0.30:3000");
+const socket = io("http://10.56.2.38:3000", {
+  transports: ["websocket"],
+});
 
 export default function App() {
-
-  // ✅ confirmar conexión
-  socket.on("connect", () => {
-    console.log("CONECTADO AL SERVER");
-  });
-
   const move = (direction: string) => {
-    let movement = { x: 0, y: 0 };
+    let movement = {
+      x: 0,
+      jump: false,
+    };
 
-    if (direction === "left") movement.x = -10;
-    if (direction === "right") movement.x = 10;
-    if (direction === "up") movement.y = -10;
+    if (direction === "left") {
+      movement.x = -6;
+    }
 
-    console.log("ENVIANDO:", movement); // debug
+    if (direction === "right") {
+      movement.x = 6;
+    }
+
+    if (direction === "jump") {
+      movement.jump = true;
+    }
 
     socket.emit("move", movement);
   };
 
+  const stop = () => {
+    socket.emit("stop");
+  };
+
   return (
     <View style={styles.container}>
-      <Text>Control</Text>
+      <Text style={styles.title}>CONTROL</Text>
 
-      <Pressable style={styles.button} onPress={() => move("left")}>
-        <Text style={styles.text}>←</Text>
-      </Pressable>
+      <View style={styles.row}>
+        <Pressable
+          style={styles.button}
+          onPressIn={() => move("left")}
+          onPressOut={stop}
+        >
+          <Text style={styles.text}>←</Text>
+        </Pressable>
 
-      <Pressable style={styles.button} onPress={() => move("right")}>
-        <Text style={styles.text}>→</Text>
-      </Pressable>
+        <Pressable
+          style={styles.button}
+          onPressIn={() => move("right")}
+          onPressOut={stop}
+        >
+          <Text style={styles.text}>→</Text>
+        </Pressable>
+      </View>
 
-      <Pressable style={styles.button} onPress={() => move("up")}>
+      <Pressable style={styles.jump} onPress={() => move("jump")}>
         <Text style={styles.text}>↑</Text>
       </Pressable>
     </View>
@@ -45,16 +64,44 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#111",
     justifyContent: "center",
     alignItems: "center",
+    gap: 30,
   },
+
+  title: {
+    color: "white",
+    fontSize: 32,
+    fontWeight: "bold",
+  },
+
+  row: {
+    flexDirection: "row",
+    gap: 25,
+  },
+
   button: {
-    padding: 20,
-    margin: 10,
-    backgroundColor: "lightblue",
-    borderRadius: 10,
+    width: 110,
+    height: 110,
+    backgroundColor: "#3498db",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 25,
   },
+
+  jump: {
+    width: 130,
+    height: 130,
+    backgroundColor: "#2ecc71",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 70,
+  },
+
   text: {
-    fontSize: 24,
+    color: "white",
+    fontSize: 42,
+    fontWeight: "bold",
   },
 });

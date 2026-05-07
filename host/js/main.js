@@ -2,25 +2,25 @@ import socket from "./socketClient.js";
 import { render } from "./renderer.js";
 
 const canvas = document.getElementById("game");
+
 const ctx = canvas.getContext("2d");
 
-let players = {};
+let state = {};
 
-// DEBUG: confirmar que corre JS
-console.log("MAIN CORRIENDO");
-
-// estado inicial (para probar aunque no conecte server)
-players["test"] = { x: 100, y: 100 };
-
-// socket
-socket.on("state", (data) => {
-  console.log("STATE:", data);
-  players = data;
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && state.win) {
+    socket.emit("nextLevel");
+  }
 });
 
-function loop() {
-  render(ctx, players);
-  requestAnimationFrame(loop);
+socket.on("gameState", (serverState) => {
+  state = serverState;
+});
+
+function gameLoop() {
+  render(ctx, state);
+
+  requestAnimationFrame(gameLoop);
 }
 
-loop();
+gameLoop();

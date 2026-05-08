@@ -1,2 +1,7 @@
-const socket = io("http://10.56.2.38:3000");
+const socket = io("http://192.168.0.30:3000", {
+  query: {
+    host: "true",
+  },
+});
+
 export default socket;

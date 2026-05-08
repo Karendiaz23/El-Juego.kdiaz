@@ -27,7 +27,12 @@ export function render(ctx, state) {
 
   ctx.fillStyle = "#8e44ad";
 
-  ctx.fillRect(state.door.x, state.door.y, state.door.width, state.door.height);
+  ctx.fillRect(
+    state.door.x,
+    state.door.y,
+    state.door.width,
+    state.door.height
+  );
 
   Object.values(state.players || {}).forEach((p) => {
     if (!p.color || typeof p.width !== "number") {
@@ -72,6 +77,7 @@ export function render(ctx, state) {
 
   ctx.fillText("NIVEL " + state.level, 20, 40);
 
+  // SIGUIENTE NIVEL
   if (state.win) {
     ctx.fillStyle = "white";
 
@@ -82,5 +88,18 @@ export function render(ctx, state) {
     ctx.font = "30px Arial";
 
     ctx.fillText("ENTER PARA CONTINUAR", 150, 280);
+  }
+
+  // FINAL DEL JUEGO
+  if (state.gameFinished) {
+    ctx.fillStyle = "white";
+
+    ctx.font = "bold 80px Arial";
+
+    ctx.fillText("GANASTE", 180, 240);
+
+    ctx.font = "bold 45px Arial";
+
+    ctx.fillText("FIN DEL JUEGO", 210, 320);
   }
 }

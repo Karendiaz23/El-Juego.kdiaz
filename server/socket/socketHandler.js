@@ -1,5 +1,8 @@
 const MAX_PLAYERS = 4;
 
+const getPlayerCount = (gameState) =>
+  Object.keys(gameState.players).length;
+
 module.exports = function setupSocket(io, gameState) {
   io.on("connection", (socket) => {
     const isHost = socket.handshake.query.host === "true";
@@ -9,13 +12,14 @@ module.exports = function setupSocket(io, gameState) {
     console.log("ID:", socket.id);
     console.log("ES HOST:", isHost);
 
+    // 🔥 HOST NO PARTICIPA COMO JUGADOR
     if (isHost) {
       console.log("HOST CONECTADO");
       return;
     }
 
-    // 🔥 LIMITE DE JUGADORES
-    const currentPlayers = Object.keys(gameState.players).length;
+    // 🔥 LIMITE DE JUGADORES (ROBUSTO)
+    const currentPlayers = getPlayerCount(gameState);
 
     if (currentPlayers >= MAX_PLAYERS) {
       console.log("SERVIDOR LLENO:", socket.id);
@@ -24,22 +28,19 @@ module.exports = function setupSocket(io, gameState) {
         message: "Servidor lleno (máx 4 jugadores)",
       });
 
-      socket.disconnect();
+      socket.disconnect(true);
       return;
     }
 
-    // 🔥 EVITAR DUPLICADOS PERO SIN ROMPER FLUJO
-    if (!gameState.players[socket.id]) {
+    // 🔥 EVITAR DUPLICADOS SIN ROMPER RECONEXIÓN
+    if (gameState.players[socket.id]) {
+      console.log("RECONEXIÓN DETECTADA:", socket.id);
+    } else {
       console.log("JUGADOR CONECTADO:", socket.id);
       gameState.addPlayer(socket.id);
-    } else {
-      console.log("RECONEXIÓN DETECTADA:", socket.id);
     }
 
-    console.log(
-      "TOTAL JUGADORES:",
-      Object.keys(gameState.players).length
-    );
+    console.log("TOTAL JUGADORES:", getPlayerCount(gameState));
 
     // =========================
     // INPUTS
@@ -55,19 +56,17 @@ module.exports = function setupSocket(io, gameState) {
 
     socket.on("nextLevel", () => {
       console.log("SIGUIENTE NIVEL");
-
       gameState.nextLevel();
     });
 
     socket.on("disconnect", () => {
       console.log("DESCONECTADO:", socket.id);
 
-      gameState.removePlayer(socket.id);
+      if (gameState.players[socket.id]) {
+        gameState.removePlayer(socket.id);
+      }
 
-      console.log(
-        "JUGADORES RESTANTES:",
-        Object.keys(gameState.players).length
-      );
+      console.log("JUGADORES RESTANTES:", getPlayerCount(gameState));
     });
   });
 };

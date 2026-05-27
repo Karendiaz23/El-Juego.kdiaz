@@ -6,9 +6,11 @@ import {
   TextInput,
 } from "react-native";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useKeepAwake } from "expo-keep-awake";
+
+import { CameraView, useCameraPermissions } from "expo-camera";
 
 export default function App() {
   useKeepAwake();
@@ -17,8 +19,20 @@ export default function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
 
+  const [scanning, setScanning] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+
+  useEffect(() => {
+    requestPermission();
+  }, []);
+
+  const onQrScanned = ({ data }: { data: string }) => {
+    setIp(data);
+    setScanning(false);
+  };
+
   const connectToServer = () => {
-    if (connected) return; // 🔒 evita doble conexión
+    if (connected) return;
 
     const newSocket = io(`http://${ip}`, {
       transports: ["websocket"],
@@ -37,16 +51,13 @@ export default function App() {
     setSocket(newSocket);
   };
 
-  // 🔥 INPUTS TIPO TP2 (keydown / keyup)
   const pressKey = (key: string) => {
     if (!socket || !connected) return;
-
     socket.emit("keydown", { key });
   };
 
   const releaseKey = (key: string) => {
     if (!socket || !connected) return;
-
     socket.emit("keyup", { key });
   };
 
@@ -57,11 +68,36 @@ export default function App() {
     socket.emit("keyup", { key: "jump" });
   };
 
+  // 🔒 Si no hay permiso, no mostramos cámara
+  if (!permission) return <View />;
+
+  if (scanning && permission.granted) {
+    return (
+      <CameraView
+        style={{ flex: 1 }}
+        onBarcodeScanned={onQrScanned}
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr"],
+        }}
+      >
+        <View style={styles.cameraOverlay}>
+          <Text style={styles.scanText}>Escaneando QR...</Text>
+
+          <Pressable
+            style={styles.cancelButton}
+            onPress={() => setScanning(false)}
+          >
+            <Text style={{ color: "white" }}>Cancelar</Text>
+          </Pressable>
+        </View>
+      </CameraView>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>GAMEPAD</Text>
 
-      {/* 🔴🟢 LED CONEXIÓN */}
       <View
         style={[
           styles.led,
@@ -73,7 +109,6 @@ export default function App() {
         {connected ? "CONECTADO" : "DESCONECTADO"}
       </Text>
 
-      {/* IP MANUAL */}
       <TextInput
         style={styles.input}
         placeholder="192.168.0.30:3000"
@@ -81,6 +116,14 @@ export default function App() {
         value={ip}
         onChangeText={setIp}
       />
+
+      {/* BOTÓN ESCANEAR QR */}
+      <Pressable
+        style={styles.scanButton}
+        onPress={() => setScanning(true)}
+      >
+        <Text style={styles.connectText}>ESCANEAR QR</Text>
+      </Pressable>
 
       <Pressable
         style={[
@@ -93,7 +136,6 @@ export default function App() {
         <Text style={styles.connectText}>CONECTAR</Text>
       </Pressable>
 
-      {/* CONTROLES */}
       <View style={styles.row}>
         <Pressable
           style={styles.button}
@@ -112,7 +154,6 @@ export default function App() {
         </Pressable>
       </View>
 
-      {/* SALTO */}
       <Pressable style={styles.jump} onPress={jump}>
         <Text style={styles.text}>A</Text>
       </Pressable>
@@ -164,6 +205,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
 
+  scanButton: {
+    backgroundColor: "#f39c12",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+  },
+
   connectText: {
     color: "white",
     fontWeight: "bold",
@@ -196,5 +244,24 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 40,
     fontWeight: "bold",
+  },
+
+  cameraOverlay: {
+    flex: 1,
+    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  scanText: {
+    color: "white",
+    fontSize: 20,
+    marginBottom: 20,
+  },
+
+  cancelButton: {
+    backgroundColor: "red",
+    padding: 10,
+    borderRadius: 10,
   },
 });

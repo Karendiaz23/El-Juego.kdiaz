@@ -59,55 +59,58 @@ class GameState {
       };
     }
 
-    // =========================
-    // NIVEL 2 DIFÍCIL
-    // =========================
-    if (this.level === 2) {
-      this.key = {
-        x: 710,
-        y: 20,
-        size: 25,
-      };
+   
+   // =========================
+// NIVEL 2 DIFÍCIL
+// =========================
+if (this.level === 2) {
+  // 🔥 MÁS ACCESIBLE SOLO
+  this.key = {
+    x: 620,
+    y: 90,
+    size: 25,
+  };
 
-      this.door = {
-        x: 720,
-        y: 470,
-        width: 50,
-        height: 80,
-      };
+  this.door = {
+    x: 720,
+    y: 470,
+    width: 50,
+    height: 80,
+  };
 
-      this.platforms = [
-        {
-          x: 220,
-          y: 430,
-          width: 110,
-          height: 15,
-        },
+  this.platforms = [
+    {
+      x: 220,
+      y: 430,
+      width: 110,
+      height: 15,
+    },
 
-        {
-          x: 420,
-          y: 320,
-          width: 100,
-          height: 15,
-        },
+    {
+      x: 420,
+      y: 320,
+      width: 100,
+      height: 15,
+    },
 
-        {
-          x: 640,
-          y: 140,
-          width: 70,
-          height: 15,
-        },
-      ];
+    // 🔥 plataforma final MÁS alcanzable
+    {
+      x: 580,
+      y: 180,
+      width: 120,
+      height: 15,
+    },
+  ];
 
-      // CAJA OBLIGATORIA
-      this.box = {
-        x: 40,
-        y: 460,
-        width: 60,
-        height: 50,
-        velocityX: 0,
-      };
-    }
+  // 🔥 CAJA NECESARIA
+  this.box = {
+    x: 40,
+    y: 460,
+    width: 60,
+    height: 50,
+    velocityX: 0,
+  };
+}
 
     // RESET JUGADORES
     for (const id in this.players) {

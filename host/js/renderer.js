@@ -1,28 +1,31 @@
 export function render(ctx, state) {
+  if (!state) return;
+
   ctx.clearRect(0, 0, 800, 600);
 
   // fondo
   ctx.fillStyle = "#222";
   ctx.fillRect(0, 0, 800, 600);
 
-  // piso
+  // =========================
+  // PISO
+  // =========================
   ctx.fillStyle = "#444";
   ctx.fillRect(0, 550, 800, 50);
 
   // =========================
   // PLATAFORMAS
   // =========================
-  if (!state.platforms) return;
-
-  for (const platform of state.platforms) {
-    ctx.fillStyle = "#8b5a2b";
-
-    ctx.fillRect(
-      platform.x,
-      platform.y,
-      platform.width,
-      platform.height
-    );
+  if (state.platforms && Array.isArray(state.platforms)) {
+    for (const platform of state.platforms) {
+      ctx.fillStyle = "#8b5a2b";
+      ctx.fillRect(
+        platform.x,
+        platform.y,
+        platform.width,
+        platform.height
+      );
+    }
   }
 
   // =========================
@@ -30,7 +33,6 @@ export function render(ctx, state) {
   // =========================
   if (state.box) {
     ctx.fillStyle = "#c97f2b";
-
     ctx.fillRect(
       state.box.x,
       state.box.y,
@@ -41,7 +43,6 @@ export function render(ctx, state) {
     // bordes madera
     ctx.strokeStyle = "#8b5a2b";
     ctx.lineWidth = 3;
-
     ctx.strokeRect(
       state.box.x,
       state.box.y,
@@ -49,40 +50,22 @@ export function render(ctx, state) {
       state.box.height
     );
 
-    // líneas decorativas
+    // líneas decorativas (Cruz de la caja)
     ctx.beginPath();
-
-    ctx.moveTo(
-      state.box.x,
-      state.box.y
-    );
-
-    ctx.lineTo(
-      state.box.x + state.box.width,
-      state.box.y + state.box.height
-    );
-
-    ctx.moveTo(
-      state.box.x + state.box.width,
-      state.box.y
-    );
-
-    ctx.lineTo(
-      state.box.x,
-      state.box.y + state.box.height
-    );
-
+    ctx.moveTo(state.box.x, state.box.y);
+    ctx.lineTo(state.box.x + state.box.width, state.box.y + state.box.height);
+    
+    ctx.moveTo(state.box.x + state.box.width, state.box.y);
+    ctx.lineTo(state.box.x, state.box.y + state.box.height);
     ctx.stroke();
   }
 
   // =========================
   // LLAVE
   // =========================
-  if (!state.hasKey) {
+  if (!state.hasKey && state.key) {
     ctx.fillStyle = "gold";
-
     ctx.beginPath();
-
     ctx.arc(
       state.key.x,
       state.key.y,
@@ -90,36 +73,33 @@ export function render(ctx, state) {
       0,
       Math.PI * 2
     );
-
     ctx.fill();
   }
 
   // =========================
   // PUERTA
   // =========================
-  ctx.fillStyle = "#8e44ad";
+  if (state.door) {
+    ctx.fillStyle = "#8e44ad";
+    ctx.fillRect(
+      state.door.x,
+      state.door.y,
+      state.door.width,
+      state.door.height
+    );
 
-  ctx.fillRect(
-    state.door.x,
-    state.door.y,
-    state.door.width,
-    state.door.height
-  );
-
-  // pomo puerta
-  ctx.fillStyle = "gold";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    state.door.x + 38,
-    state.door.y + 40,
-    5,
-    0,
-    Math.PI * 2
-  );
-
-  ctx.fill();
+    // pomo puerta
+    ctx.fillStyle = "gold";
+    ctx.beginPath();
+    ctx.arc(
+      state.door.x + 38,
+      state.door.y + 40,
+      5,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
 
   // =========================
   // JUGADORES
@@ -131,7 +111,6 @@ export function render(ctx, state) {
 
     // cuerpo
     ctx.fillStyle = p.color;
-
     ctx.fillRect(
       p.x,
       p.y,
@@ -141,7 +120,6 @@ export function render(ctx, state) {
 
     // ojos
     ctx.fillStyle = "white";
-
     ctx.beginPath();
     ctx.arc(p.x + 12, p.y + 14, 4, 0, Math.PI * 2);
     ctx.fill();
@@ -152,7 +130,6 @@ export function render(ctx, state) {
 
     // pupilas
     ctx.fillStyle = "black";
-
     ctx.beginPath();
     ctx.arc(p.x + 12, p.y + 14, 2, 0, Math.PI * 2);
     ctx.fill();
@@ -163,7 +140,6 @@ export function render(ctx, state) {
 
     // sonrisa
     ctx.beginPath();
-
     ctx.arc(
       p.x + 20,
       p.y + 24,
@@ -171,10 +147,8 @@ export function render(ctx, state) {
       0,
       Math.PI
     );
-
     ctx.strokeStyle = "black";
     ctx.lineWidth = 2;
-
     ctx.stroke();
   });
 
@@ -182,45 +156,25 @@ export function render(ctx, state) {
   // HUD
   // =========================
   ctx.fillStyle = "white";
-
   ctx.font = "24px Arial";
-
-  ctx.fillText(
-    "NIVEL " + state.level,
-    20,
-    40
-  );
+  ctx.fillText("NIVEL " + state.level, 20, 40);
 
   // jugadores conectados
   ctx.font = "20px Arial";
-
   ctx.fillText(
-    "JUGADORES: " +
-      Object.keys(state.players).length +
-      "/4",
+    "JUGADORES: " + Object.keys(state.players || {}).length + "/4",
     20,
     70
   );
 
   // estado llave
   ctx.font = "18px Arial";
-
   if (state.hasKey) {
     ctx.fillStyle = "#4dff88";
-
-    ctx.fillText(
-      "LLAVE OBTENIDA",
-      20,
-      100
-    );
+    ctx.fillText("LLAVE OBTENIDA", 20, 100);
   } else {
     ctx.fillStyle = "#ffd24d";
-
-    ctx.fillText(
-      "BUSQUEN LA LLAVE",
-      20,
-      100
-    );
+    ctx.fillText("BUSQUEN LA LLAVE", 20, 100);
   }
 
   // =========================
@@ -228,22 +182,11 @@ export function render(ctx, state) {
   // =========================
   if (state.win) {
     ctx.fillStyle = "white";
-
     ctx.font = "bold 50px Arial";
-
-    ctx.fillText(
-      "SIGUIENTE NIVEL",
-      150,
-      220
-    );
+    ctx.fillText("SIGUIENTE NIVEL", 150, 220);
 
     ctx.font = "30px Arial";
-
-    ctx.fillText(
-      "CARGANDO...",
-      260,
-      280
-    );
+    ctx.fillText("CARGANDO...", 260, 280);
   }
 
   // =========================
@@ -251,21 +194,10 @@ export function render(ctx, state) {
   // =========================
   if (state.gameFinished) {
     ctx.fillStyle = "white";
-
     ctx.font = "bold 80px Arial";
-
-    ctx.fillText(
-      "GANASTE",
-      180,
-      240
-    );
+    ctx.fillText("GANASTE", 180, 240);
 
     ctx.font = "bold 45px Arial";
-
-    ctx.fillText(
-      "FIN DEL JUEGO",
-      210,
-      320
-    );
+    ctx.fillText("FIN DEL JUEGO", 210, 320);
   }
 }

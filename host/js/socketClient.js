@@ -1,4 +1,4 @@
-const socket = io("http://10.56.2.28:3000", {
+const socket = io({
   query: {
     host: "true",
   },

@@ -66,9 +66,7 @@
     <div class="panel">
       <h2>CONECTAR</h2>
 
-      <div class="ip">
-        10.56.2.28:3000
-      </div>
+      <div class="ip" id="ipText"></div>
 
       <div id="qrcode"></div>
     </div>
@@ -80,8 +78,15 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
   <script>
+    // 🔥 OBTENER IP AUTOMÁTICA DESDE EL NAVEGADOR
+    const ip = `${window.location.hostname}:3000`;
+
+    // MOSTRAR TEXTO
+    document.getElementById("ipText").textContent = ip;
+
+    // GENERAR QR
     new QRCode(document.getElementById("qrcode"), {
-      text: "10.56.2.28:3000",
+      text: ip,
       width: 180,
       height: 180,
     });

@@ -4,6 +4,7 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
+  Alert,
 } from "react-native";
 
 import { useEffect, useState } from "react";
@@ -27,37 +28,71 @@ export default function App() {
   }, []);
 
   const onQrScanned = ({ data }: { data: string }) => {
-    setIp(data);
+    let limpiaIp = data
+      .replace("http://", "")
+      .replace("https://", "");
+
+    setIp(limpiaIp);
     setScanning(false);
   };
 
   const connectToServer = () => {
-    if (connected) return;
-
+    if (socket) {
+      socket.disconnect();
+    }
+  
+    console.log("Intentando conectar a:", `http://${ip}`);
+  
     const newSocket = io(`http://${ip}`, {
       transports: ["websocket"],
+      forceNew: true,
+      timeout: 10000,
     });
-
+  
     newSocket.on("connect", () => {
-      console.log("Conectado al servidor");
+      console.log("✅ CONECTADO");
+  
+      Alert.alert(
+        "Conectado",
+        "El celular se conectó correctamente al servidor."
+      );
+  
       setConnected(true);
     });
-
+  
     newSocket.on("disconnect", () => {
-      console.log("Desconectado");
+      console.log("❌ DESCONECTADO");
       setConnected(false);
     });
-
+  
+    newSocket.on("connect_error", (err) => {
+      console.log("🔥 ERROR COMPLETO");
+      console.log(JSON.stringify(err));
+  
+      Alert.alert(
+        "ERROR",
+        JSON.stringify(err)
+      );
+  
+      setConnected(false);
+    });
+  
     setSocket(newSocket);
   };
 
+   
+
+ 
+
   const pressKey = (key: string) => {
     if (!socket || !connected) return;
+
     socket.emit("keydown", { key });
   };
 
   const releaseKey = (key: string) => {
     if (!socket || !connected) return;
+
     socket.emit("keyup", { key });
   };
 
@@ -65,10 +100,12 @@ export default function App() {
     if (!socket || !connected) return;
 
     socket.emit("keydown", { key: "jump" });
-    socket.emit("keyup", { key: "jump" });
+
+    setTimeout(() => {
+      socket.emit("keyup", { key: "jump" });
+    }, 50);
   };
 
-  // 🔒 Si no hay permiso, no mostramos cámara
   if (!permission) return <View />;
 
   if (scanning && permission.granted) {
@@ -81,13 +118,17 @@ export default function App() {
         }}
       >
         <View style={styles.cameraOverlay}>
-          <Text style={styles.scanText}>Escaneando QR...</Text>
+          <Text style={styles.scanText}>
+            Escaneando QR...
+          </Text>
 
           <Pressable
             style={styles.cancelButton}
             onPress={() => setScanning(false)}
           >
-            <Text style={{ color: "white" }}>Cancelar</Text>
+            <Text style={{ color: "white" }}>
+              Cancelar
+            </Text>
           </Pressable>
         </View>
       </CameraView>
@@ -101,12 +142,18 @@ export default function App() {
       <View
         style={[
           styles.led,
-          { backgroundColor: connected ? "#2ecc71" : "#e74c3c" },
+          {
+            backgroundColor: connected
+              ? "#2ecc71"
+              : "#e74c3c",
+          },
         ]}
       />
 
       <Text style={styles.status}>
-        {connected ? "CONECTADO" : "DESCONECTADO"}
+        {connected
+          ? "CONECTADO"
+          : "DESCONECTADO"}
       </Text>
 
       <TextInput
@@ -117,23 +164,22 @@ export default function App() {
         onChangeText={setIp}
       />
 
-      {/* BOTÓN ESCANEAR QR */}
       <Pressable
         style={styles.scanButton}
         onPress={() => setScanning(true)}
       >
-        <Text style={styles.connectText}>ESCANEAR QR</Text>
+        <Text style={styles.connectText}>
+          ESCANEAR QR
+        </Text>
       </Pressable>
 
       <Pressable
-        style={[
-          styles.connectButton,
-          { opacity: connected ? 0.5 : 1 },
-        ]}
+        style={styles.connectButton}
         onPress={connectToServer}
-        disabled={connected}
       >
-        <Text style={styles.connectText}>CONECTAR</Text>
+        <Text style={styles.connectText}>
+          CONECTAR
+        </Text>
       </Pressable>
 
       <View style={styles.row}>
@@ -154,7 +200,10 @@ export default function App() {
         </Pressable>
       </View>
 
-      <Pressable style={styles.jump} onPress={jump}>
+      <Pressable
+        style={styles.jump}
+        onPress={jump}
+      >
         <Text style={styles.text}>A</Text>
       </Pressable>
     </View>
@@ -248,7 +297,7 @@ const styles = StyleSheet.create({
 
   cameraOverlay: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
   },

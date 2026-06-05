@@ -8,12 +8,11 @@ const ctx = canvas.getContext("2d");
 let state = {};
 
 window.addEventListener("keydown", (e) => {
-  // NO avanzar si el juego terminó
   if (state.gameFinished) {
     return;
   }
 
-  // PASAR DE NIVEL
+
   if (e.key === "Enter" && state.win) {
     socket.emit("nextLevel");
   }

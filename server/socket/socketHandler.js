@@ -1,6 +1,5 @@
 const MAX_PLAYERS = 4;
 
-// 🔥 guarda qué socket pertenece a cada celular
 const connectedIPs = {};
 
 const getPlayerCount = (gameState) =>
@@ -10,7 +9,6 @@ module.exports = function setupSocket(io, gameState) {
   io.on("connection", (socket) => {
     const isHost = socket.handshake.query.host === "true";
 
-    // 🔥 IP REAL DEL CLIENTE
     const clientIP =
       socket.handshake.address ||
       socket.conn.remoteAddress;
@@ -21,32 +19,24 @@ module.exports = function setupSocket(io, gameState) {
     console.log("IP:", clientIP);
     console.log("ES HOST:", isHost);
 
-    // =========================
-    // HOST
-    // =========================
+  
     if (isHost) {
       console.log("HOST CONECTADO");
       return;
     }
 
-    // =========================
-    // EVITAR JUGADORES FANTASMAS
-    // =========================
-
-    // si esa IP ya tenía un socket viejo
+  
     if (connectedIPs[clientIP]) {
       const oldSocketId = connectedIPs[clientIP];
 
       console.log("SOCKET VIEJO ENCONTRADO:", oldSocketId);
 
-      // borrar jugador viejo
       if (gameState.players[oldSocketId]) {
         gameState.removePlayer(oldSocketId);
 
         console.log("JUGADOR FANTASMA ELIMINADO");
       }
 
-      // desconectar socket viejo
       const oldSocket = io.sockets.sockets.get(oldSocketId);
 
       if (oldSocket) {
@@ -56,12 +46,9 @@ module.exports = function setupSocket(io, gameState) {
       }
     }
 
-    // guardar nuevo socket
     connectedIPs[clientIP] = socket.id;
 
-    // =========================
-    // LIMITE DE JUGADORES
-    // =========================
+
     const currentPlayers = getPlayerCount(gameState);
 
     if (currentPlayers >= MAX_PLAYERS) {
@@ -75,9 +62,6 @@ module.exports = function setupSocket(io, gameState) {
       return;
     }
 
-    // =========================
-    // CREAR JUGADOR
-    // =========================
     console.log("JUGADOR CONECTADO:", socket.id);
 
     gameState.addPlayer(socket.id);
@@ -87,9 +71,7 @@ module.exports = function setupSocket(io, gameState) {
       getPlayerCount(gameState)
     );
 
-    // =========================
-    // INPUTS
-    // =========================
+  
     socket.on("keydown", (data) => {
       gameState.keyDown(socket.id, data.key);
     });
@@ -103,18 +85,14 @@ module.exports = function setupSocket(io, gameState) {
       gameState.nextLevel();
     });
 
-    // =========================
-    // DESCONECTAR
-    // =========================
+   
     socket.on("disconnect", () => {
       console.log("DESCONECTADO:", socket.id);
 
-      // borrar jugador
       if (gameState.players[socket.id]) {
         gameState.removePlayer(socket.id);
       }
 
-      // limpiar IP guardada
       if (connectedIPs[clientIP] === socket.id) {
         delete connectedIPs[clientIP];
       }

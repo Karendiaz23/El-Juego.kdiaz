@@ -59,10 +59,8 @@
 
   <div class="container">
 
-    <!-- JUEGO -->
     <canvas id="game" width="800" height="600"></canvas>
 
-    <!-- PANEL QR -->
     <div class="panel">
       <h2>CONECTAR</h2>
 
@@ -78,13 +76,10 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
   <script>
-    // 🔥 OBTENER IP AUTOMÁTICA DESDE EL NAVEGADOR
     const ip = `${window.location.hostname}:3000`;
 
-    // MOSTRAR TEXTO
     document.getElementById("ipText").textContent = ip;
 
-    // GENERAR QR
     new QRCode(document.getElementById("qrcode"), {
       text: ip,
       width: 180,

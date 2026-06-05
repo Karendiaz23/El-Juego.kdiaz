@@ -9,15 +9,11 @@ const GameState = require("./game/gameState");
 const app = express();
 const server = http.createServer(app);
 
-// 🔥 HOST
 app.use(express.static("../host"));
 
-// 🔥 ARCHIVOS SERVER
 app.use(express.static(__dirname));
 
-// =========================
-// 🔍 IP LOCAL
-// =========================
+
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
 
@@ -37,9 +33,7 @@ function getLocalIP() {
 
 const localIP = getLocalIP();
 
-// =========================
-// SOCKET.IO
-// =========================
+
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -48,12 +42,9 @@ const io = new Server(server, {
 
 const gameState = new GameState();
 
-// 🔌 SOCKETS
+
 setupSocket(io, gameState);
 
-// =========================
-// 🎮 GAME LOOP
-// =========================
 setInterval(() => {
   gameState.update();
 
@@ -68,7 +59,6 @@ setInterval(() => {
 
     platforms: gameState.platforms,
 
-    // 🔥 ESTO FALTABA
     box: gameState.box,
 
     hasKey: gameState.hasKey,
@@ -79,9 +69,7 @@ setInterval(() => {
   });
 }, 1000 / 30);
 
-// =========================
-// 🚀 SERVER
-// =========================
+
 server.listen(3000, "0.0.0.0", () => {
   console.log("\n=============================");
   console.log("🎮 PICO PARK INICIADO");

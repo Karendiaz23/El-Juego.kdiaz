@@ -19,7 +19,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "usesCleartextTraffic": true,
+      "package": "com.karendiaz.mobile"
     },
     "web": {
       "output": "static",
@@ -39,11 +44,17 @@
           }
         }
       ],
-      "expo-barcode-scanner"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f471e20b-d6e1-4d68-93be-8a5beda25eba"
+      }
     }
   }
 }
